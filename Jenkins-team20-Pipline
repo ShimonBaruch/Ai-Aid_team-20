@@ -23,7 +23,7 @@ pipeline {
         stage('Install Dependencies') {
             agent {
                 docker {
-                    image "${DOCKER_IMAGE}"
+                    image DOCKER_IMAGE
                     args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
@@ -40,7 +40,7 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image "${DOCKER_IMAGE}"
+                    image DOCKER_IMAGE
                     args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
@@ -57,7 +57,7 @@ pipeline {
         stage('Test') {
             agent {
                 docker {
-                    image "${DOCKER_IMAGE}"
+                    image DOCKER_IMAGE
                     args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
@@ -79,7 +79,7 @@ pipeline {
         stage('Deploy') {
             agent {
                 docker {
-                    image "${DOCKER_IMAGE}"
+                    image DOCKER_IMAGE
                     args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
@@ -95,3 +95,4 @@ pipeline {
         }
     }
 }
+
