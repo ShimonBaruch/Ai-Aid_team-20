@@ -1,7 +1,7 @@
 pipeline {
     agent none
     environment {
-        DOCKER_HOST = 'tcp://host.docker.internal:2375'  // Docker Desktop for Windows or macOS
+        DOCKER_HOST = 'tcp://localhost:2375'  // Docker Desktop for Windows or macOS
         DOCKER_IMAGE = 'my-react-app:latest'
     }
     stages {
