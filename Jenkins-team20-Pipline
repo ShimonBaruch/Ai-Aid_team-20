@@ -1,94 +1,14 @@
 pipeline {
-    agent none
+    agent any
     environment {
-        DOCKER_HOST = 'tcp://localhost:2375'
-        DOCKER_IMAGE = 'my-react-app:latest'
+        DOCKER_HOST = 'tcp://host.docker.internal:2375'
     }
     stages {
-        stage('Build Docker Image') {
-            agent {
-                docker {
-                    image 'docker:19.03.12'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
+        stage('Test Docker Connectivity') {
             steps {
                 script {
                     docker.withServer(DOCKER_HOST) {
-                        dockerImage = docker.build(DOCKER_IMAGE)
-                    }
-                }
-            }
-        }
-        stage('Install Dependencies') {
-            agent {
-                docker {
-                    image "${DOCKER_IMAGE}"
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
-            steps {
-                script {
-                    docker.withServer(DOCKER_HOST) {
-                        docker.image(DOCKER_IMAGE).inside {
-                            sh 'npm install'
-                        }
-                    }
-                }
-            }
-        }
-        stage('Build') {
-            agent {
-                docker {
-                    image "${DOCKER_IMAGE}"
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
-            steps {
-                script {
-                    docker.withServer(DOCKER_HOST) {
-                        docker.image(DOCKER_IMAGE).inside {
-                            sh 'npm run build'
-                        }
-                    }
-                }
-            }
-        }
-        stage('Test') {
-            agent {
-                docker {
-                    image "${DOCKER_IMAGE}"
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
-            steps {
-                script {
-                    docker.withServer(DOCKER_HOST) {
-                        docker.image(DOCKER_IMAGE).inside {
-                            sh 'npm test -- --coverage --coverageReporters=text --coverageReporters=cobertura'
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    junit 'coverage/cobertura-coverage.xml'
-                }
-            }
-        }
-        stage('Deploy') {
-            agent {
-                docker {
-                    image "${DOCKER_IMAGE}"
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
-            steps {
-                script {
-                    docker.withServer(DOCKER_HOST) {
-                        docker.image(DOCKER_IMAGE).inside {
-                            sh 'npm run deploy'
-                        }
+                        sh 'docker --version'
                     }
                 }
             }
