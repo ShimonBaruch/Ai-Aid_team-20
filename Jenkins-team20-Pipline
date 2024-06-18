@@ -1,51 +1,74 @@
 pipeline {
     agent none
     environment {
+        DOCKER_HOST = 'tcp://host.docker.internal:2375'  // Docker Desktop for Windows or macOS
         DOCKER_IMAGE = 'my-react-app:latest'
-        DOCKER_ARGS = '-v /var/run/docker.sock:/var/run/docker.sock'
     }
     stages {
         stage('Build Docker Image') {
             agent {
                 docker {
                     image 'docker:19.03.12'
-                    args "$DOCKER_ARGS"
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
                 script {
-                    dockerImage = docker.build(DOCKER_IMAGE)
+                    docker.withServer(DOCKER_HOST) {
+                        dockerImage = docker.build(DOCKER_IMAGE)
+                    }
                 }
             }
         }
         stage('Install Dependencies') {
             agent {
                 docker {
-                    image "$DOCKER_IMAGE"
+                    image DOCKER_IMAGE
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
-                sh 'npm install'
+                script {
+                    docker.withServer(DOCKER_HOST) {
+                        docker.image(DOCKER_IMAGE).inside {
+                            sh 'npm install'
+                        }
+                    }
+                }
             }
         }
         stage('Build') {
             agent {
                 docker {
-                    image "$DOCKER_IMAGE"
+                    image DOCKER_IMAGE
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
-                sh 'npm run build'
+                script {
+                    docker.withServer(DOCKER_HOST) {
+                        docker.image(DOCKER_IMAGE).inside {
+                            sh 'npm run build'
+                        }
+                    }
+                }
             }
         }
         stage('Test') {
             agent {
                 docker {
-                    image "$DOCKER_IMAGE"
+                    image DOCKER_IMAGE
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
-                sh 'npm test -- --coverage --coverageReporters=text --coverageReporters=cobertura'
+                script {
+                    docker.withServer(DOCKER_HOST) {
+                        docker.image(DOCKER_IMAGE).inside {
+                            sh 'npm test -- --coverage --coverageReporters=text --coverageReporters=cobertura'
+                        }
+                    }
+                }
             }
             post {
                 always {
@@ -56,11 +79,18 @@ pipeline {
         stage('Deploy') {
             agent {
                 docker {
-                    image "$DOCKER_IMAGE"
+                    image DOCKER_IMAGE
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
             steps {
-                sh 'npm run deploy'
+                script {
+                    docker.withServer(DOCKER_HOST) {
+                        docker.image(DOCKER_IMAGE).inside {
+                            sh 'npm run deploy'
+                        }
+                    }
+                }
             }
         }
     }
